@@ -1,0 +1,351 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String            @id @default(cuid())
+  email         String            @unique
+  passwordHash  String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  profile       Profile?
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+  followers     Follow[]          @relation("followers")
+  following     Follow[]          @relation("following")
+  bookings      Booking[]
+  itineraries   Itinerary[]
+  savedItems    SavedItem[]
+  reviews       Review[]
+  reports       Report[]
+  notifications Notification[]
+  guides        TravelGuide[]
+  checklists    Checklist[]
+  budgetPlans   BudgetPlan[]
+  groupTrips    GroupTrip[]
+  memberships   GroupTripMember[]
+  votes         Vote[]
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  username  String   @unique
+  bio       String?
+  avatarUrl String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Country {
+  id              String        @id @default(cuid())
+  name            String
+  slug            String        @unique
+  overview        String?
+  bestTime        String?
+  visaInfo        String?
+  currency        String?
+  language        String?
+  localPhrases    LocalPhrase[]
+  cities          City[]
+  scamAlerts      ScamAlert[]
+  safetyTips      SafetyTip[]
+  culturalTips    CulturalTip[]
+}
+
+model City {
+  id              String        @id @default(cuid())
+  countryId       String
+  name            String
+  slug            String        @unique
+  overview        String?
+  safetyScore     Int?
+  emergencyNumber String?
+  country         Country       @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  destinations    Destination[]
+}
+
+model Destination {
+  id               String      @id @default(cuid())
+  cityId           String
+  name             String
+  slug             String      @unique
+  description      String?
+  hiddenGem        String?
+  touristTraps     String?
+  averageDailyCost Float?
+  city             City        @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  hotels           Hotel[]
+  restaurants      Restaurant[]
+  activities       Activity[]
+  tours            Tour[]
+  events           Event[]
+  itineraries      Itinerary[]
+}
+
+model Hotel {
+  id            String    @id @default(cuid())
+  destinationId String
+  name          String
+  pricePerNight Float
+  rating        Float?
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+}
+
+model Restaurant {
+  id            String    @id @default(cuid())
+  destinationId String
+  name          String
+  halal         Boolean   @default(false)
+  vegetarian    Boolean   @default(false)
+  vegan         Boolean   @default(false)
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+}
+
+model Activity {
+  id            String    @id @default(cuid())
+  destinationId String
+  name          String
+  category      String?
+  price         Float?
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+}
+
+model Tour {
+  id            String    @id @default(cuid())
+  destinationId String
+  title         String
+  price         Float?
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id            String    @id @default(cuid())
+  destinationId String
+  title         String
+  startsAt      DateTime?
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+}
+
+model Flight {
+  id          String  @id @default(cuid())
+  fromCode    String
+  toCode      String
+  price       Float
+  durationMin Int
+}
+
+model Booking {
+  id         String   @id @default(cuid())
+  userId     String
+  itemType   String
+  itemId     String
+  status     String   @default("PENDING")
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Itinerary {
+  id            String         @id @default(cuid())
+  userId         String
+  destinationId  String
+  title          String
+  createdAt      DateTime       @default(now())
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  destination    Destination    @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  days           ItineraryDay[]
+  items          ItineraryItem[]
+}
+
+model ItineraryDay {
+  id          String        @id @default(cuid())
+  itineraryId String
+  dayNumber   Int
+  note        String?
+  itinerary   Itinerary     @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+}
+
+model ItineraryItem {
+  id          String      @id @default(cuid())
+  itineraryId String
+  title       String
+  type        String?
+  startTime   DateTime?
+  itinerary   Itinerary   @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+}
+
+model SavedItem {
+  id         String    @id @default(cuid())
+  userId     String
+  itemType   String
+  itemId     String
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id         String    @id @default(cuid())
+  userId      String
+  content    String
+  country    String?
+  city       String?
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments   Comment[]
+  likes      Like[]
+}
+
+model Comment {
+  id         String    @id @default(cuid())
+  userId      String
+  postId      String
+  content    String
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Like {
+  id        String  @id @default(cuid())
+  userId    String
+  postId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+}
+
+model Follow {
+  id           String  @id @default(cuid())
+  followerId   String
+  followingId  String
+  follower     User    @relation("followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following    User    @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  itemType  String
+  itemId    String
+  rating    Int
+  content   String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  userId    String
+  targetType String
+  targetId  String
+  reason    String
+  status    String   @default("OPEN")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+  userId     String
+  title      String
+  body       String?
+  readAt     DateTime?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TravelGuide {
+  id         String   @id @default(cuid())
+  userId     String
+  title      String
+  content    String
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Checklist {
+  id         String   @id @default(cuid())
+  userId     String
+  name       String
+  type       String
+  items      Json
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BudgetPlan {
+  id             String   @id @default(cuid())
+  userId          String
+  destinationName String
+  totalBudget     Float
+  breakdown       Json
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GroupTrip {
+  id          String            @id @default(cuid())
+  ownerId     String
+  title       String
+  destination String
+  budget      Float?
+  owner       User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members     GroupTripMember[]
+  votes       Vote[]
+}
+
+model GroupTripMember {
+  id          String    @id @default(cuid())
+  groupTripId String
+  userId      String
+  role        String    @default("MEMBER")
+  groupTrip   GroupTrip @relation(fields: [groupTripId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupTripId, userId])
+}
+
+model Vote {
+  id          String    @id @default(cuid())
+  groupTripId String
+  userId      String
+  option      String
+  groupTrip   GroupTrip @relation(fields: [groupTripId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ScamAlert {
+  id         String   @id @default(cuid())
+  countryId  String
+  title      String
+  details    String
+  country    Country  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+}
+
+model SafetyTip {
+  id         String   @id @default(cuid())
+  countryId  String
+  title      String
+  details    String
+  country    Country  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+}
+
+model CulturalTip {
+  id         String   @id @default(cuid())
+  countryId  String
+  title      String
+  details    String
+  country    Country  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+}
+
+model LocalPhrase {
+  id         String   @id @default(cuid())
+  countryId  String
+  phrase     String
+  meaning    String
+  country    Country  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+}
