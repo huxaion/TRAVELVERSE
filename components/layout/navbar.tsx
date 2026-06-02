@@ -19,7 +19,7 @@ export function Navbar() {
         <div className="hidden lg:block lg:w-80">
           <SearchBar placeholder="Search countries, cities, posts..." />
         </div>
-        <nav className="flex items-center gap-3 text-sm">
+        <nav className="flex items-center gap-3 text-sm" aria-label="Main navigation">
           {links.map(([label, href]) => (
             <Link key={href} href={href} className="rounded-full px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-900">
               {label}

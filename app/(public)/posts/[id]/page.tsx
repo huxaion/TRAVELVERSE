@@ -10,7 +10,12 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
 
   return (
     <article className="card space-y-3">
-      <h1 className="text-xl font-bold">{post.author} in {post.city}, {post.country}</h1>
+      <header className="space-y-1">
+        <h1 className="text-xl font-bold">{post.author}</h1>
+        <p className="text-sm text-slate-600 dark:text-slate-300" aria-label={`Location: ${post.city}, ${post.country}`}>
+          {post.city}, {post.country}
+        </p>
+      </header>
       <p>{post.content}</p>
       <div className="flex gap-2">
         <LikeButton initial={post.likes} />
